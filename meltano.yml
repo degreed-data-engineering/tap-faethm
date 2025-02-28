@@ -3,25 +3,40 @@ send_anonymous_usage_stats: true
 project_id: 4935d052-aee1-46fa-89f0-a94cdc080064
 plugins:
   extractors:
-  - name: tap-template
-    namespace: tap_template
-    executable: ./tap-template.sh
+  - name: tap-faethm
+    namespace: tap_faethm
+    executable: ./tap-faethm.sh
     capabilities:
     - state
     - catalog
     - discover
+    settings:
+    - name: api_base_url
+      value: https://api.workforce.pearson.com/di/v1
+      description: Faethm REST api base url
+    - name: api_key
+      kind: string
+      description: Faethm account-specific secret token
+      sensitive: true
+    - name: country_code
+      value: US
+      description: coutry code for the data
     config:
-      api_key: API-KEY
-      app_key: APP-KEY
-      start_date: '2022-10-05T00:00:00Z'
+      api_base_url: $FAETHM_BASE_URL
+      api_key: $FAETHM_API_KEY
+      country_code: $FAETHM_COUNTRY_CODE
   
   loaders:
   - name: target-jsonl
     variant: andyh1203
     pip_url: target-jsonl
+    config:
+      path_prefix: ./output    # Directory where JSONL files will be written
+      do_timestamp_file: true
+default_environment: dev
 environments:
 - name: dev
   config:
     plugins:
       extractors:
-      - name: tap-template
+      - name: tap-faethm

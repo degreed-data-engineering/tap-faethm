@@ -1,178 +1,133 @@
-# `tap-template`
-This tap template was created by Degreed as a template to be used for extracting data via Meltano into defined targets
+# tap-faethm
 
+A Singer tap for extracting data from the Faethm Workforce API. This tap was created by Degreed and is designed to work with Meltano for data extraction and loading.
 
-## tap-template
+## Features
 
-These are the steps required for using this repo as a 'template' for a Meltano extractor. Note: we will use tap-datadog as the example throughout the process.
+- Extracts data from Faethm's Workforce API
+- Supports multiple data streams:
+  - Industries
+  - Emerging Skills (per industry)
+  - Trending Skills (per industry)
+  - Declining Skills (per industry)
+- Built using the Singer SDK framework
+- Includes rate limiting and timeout handling
+- Configurable API base URL and authentication
 
-1.  Being aware of case sensitivity, replace the following throughout the repo:
+## Installation
 
-* `tap-template` >`tap-datadog` 
-* `tap_template` > `tap_datadog`
-* `TapTemplateStream` > `TapDatadogStream` (inside `streams.py`)
+### Using Poetry
 
-2. Update the following folders/files to:
-* `tap_template` > `tap_datadog`
-* `tap-template.sh` > `tap-datadog.sh`
-
-3. Inside `streams.py` update TapTemplateStream with the authentication used for the tap-datadog api calls.  Note: all streams in streams.py work as a heirarchy further down. i.e. you can replace the http headers in another stream
-
-4. Using `Events(TapTemplateStream)` as an example, build your first stream to be synced. There are comments to help identify what values to use 
-
-For setting the `records_jsonpath` value in the stream, you can use a tool likle postman to make a sample call and view the response json.  After identifying what keys and values you need to extract, you will need to narrow down the json path. This is a helpful site that you can paste the response text in and help locate the correct path to use.  In this example, we want to only extract the `id` and `type` values inside `data`:
-
-```json
-{
-    "meta": {
-        "page": {
-            "after": "293048209rudjkfjdsf"
-        }
-    },
-    "data": [
-        {
-            "type": "error",
-            "id": "234234324324234"
-        },
-        {
-            "type": "log",
-            "id": "2342123123"
-        },
-        {
-            "type": "log",
-            "id": "09823044ugkdf"
-        }
-    ],
-    "links": {
-        "next": "https://api.datadoghq.com/api/v2/logs/events?..."
-    }
-}
-```
-
-Using the link above and entering the value $.data[*], the correct fields are now displaying, confirming that is the correct path:
-
-```json
-[
-  {
-    "type": "error",
-    "id": "234234324324234"
-  },
-  {
-    "type": "log",
-    "id": "2342123123"
-  },
-  {
-    "type": "log",
-    "id": "09823044ugkdf"
-  }
-]
-```
-
-For the schema, you can create the .json file and place it in the schemas/ folder, or you can create the schema on the fly using the eample in the Events stream
-
-- **Option 1:** Adding the `events.json` file to the schemas/ folder:
-```json
-{
-        "type": "object",
-        "properties": {
-                "id": {
-                        "type": "string"
-                },
-                "type": {
-                        "type": "string"
-                }
-        }
-}
-```
-
-- **Option 2:** Defining schema using hte PropertiesList in the stream `class`: 
-```python
-schema = th.PropertiesList(
-        th.Property("id", th.NumberType),
-        th.Property("name", th.StringType),
-    ).to_dict()
-```
-
-5. In `tap.py` add each stream added in `streams.py` to `STREAM_TYPES` and define the configuration required:
-
-```python
-    config_jsonschema = th.PropertiesList(
-        th.Property("api_token", th.StringType, required=False, description="api token for Basic auth"),
-        th.Property("start_date", th.StringType, required=False, description="start date for sync"),
-    ).to_dict()
-```
-
-6. After updating those components and confirming all references to `template` or `Template` have been updated, you can test the tap locally.
-
-## Testing locally
-
-To test locally, pipx poetry
 ```bash
+# Install poetry if you haven't already
 pipx install poetry
-```
 
-Install poetry for the package
-```bash
+# Install package dependencies
 poetry install
+
+# Verify installation
+poetry run tap-faethm --help
 ```
 
-To confirm everything is setup properly, run the following: 
-```bash
-poetry run tap-template --help
-```
 
-To run the tap locally outside of Meltano and view the response in a text file, run the following: 
-```bash
-poetry run tap-template > output.txt 
-```
+## Configuration
 
-A full list of supported settings and capabilities is available by running: `tap-template --about`
-
-## Config Guide
-
-To test locally, create a `config.json` with required config values in your tap_template folder (i.e. `tap_template/config.json`)
+The tap requires the following configuration parameters:
 
 ```json
 {
-  "api_key": "$DD_API_KEY",
-  "app_key": "$DD_APP_KEY",
-  "start_date": "2022-10-05T00:00:00Z"
+  "api_base_url": "https://api.workforce.pearson.com/di/v1",
+  "api_key": "YOUR_API_KEY",
+  "country_code": "US"
 }
 ```
 
-**note**: It is critical that you delete the config.json before pushing to github.  You do not want to expose an api key or token 
-### Add to Meltano 
+### Configuration Parameters
 
-The provided `meltano.yml` provides the correct setup for the tap to be installed in the data-houston repo.  
+- `api_base_url` (optional): Base URL for the Faethm API. Defaults to "https://api.workforce.pearson.com/di/v1"
+- `api_key` (required): Your Faethm API authentication token
+- `country_code` (required): Country code for data filtering
 
-At this point you should move all your updated tap files into its own tap-datadog github repo. You also want to make sure you update in the `setup.py` the `url` of the repo for you tap.
+## Usage with Meltano
 
-Update the following in meltano within the data-houston repo with the new tap-datadog credentials/configuration.
+Add to your `meltano.yml` file:
 
-```yml
+```yaml
 plugins:
   extractors:
-  - name: tap-datadog
-    namespace: tap_datadog
-    pip_url: git+https://github.com/degreed-data-engineering/tap-datadog
+  - name: tap-faethm
+    namespace: tap_faethm
+    executable: ./tap-faethm.sh
     capabilities:
     - state
     - catalog
     - discover
+    settings:
+    - name: api_base_url
+      value: https://api.workforce.pearson.com/di/v1
+    - name: api_key
+      kind: string
+      sensitive: true
+    - name: country_code
+      value: US
     config:
-      api_key: $DD_API_KEY
-      app_key: $DD_APP_KEY
-      start_date: '2022-10-05T00:00:00Z'
- ```
+      api_base_url: $FAETHM_BASE_URL
+      api_key: $FAETHM_API_KEY
+      country_code: $FAETHM_COUNTRY_CODE
+```
 
-To test in data-houston, run the following:
-1. `make meltano` - spins up meltano
-2. `meltano install extractor tap-datadog` - installs the tap
-3. `meltano invoke tap-datadog --discover > catalog.json` - tests the catalog/discovery
-3. `meltano invoke tap-datadog > output.txt` - runs tap with .txt output in `meltano/degreed/`
+### Testing with Meltano
 
-That should be it! Feel free to contribute to the tap to help add functionality for any future sources
-## Singer SDK Dev Guide
+1. Install the tap:
+```bash
+meltano install extractor tap-faethm
+```
 
-See the [dev guide](https://sdk.meltano.com/en/latest/index.html) for more instructions on how to use the Singer SDK to 
-develop your own taps and targets.
+2. Test the discovery mode:
+```bash
+meltano invoke tap-faethm --discover > catalog.json
+```
+
+3. Run the tap:
+```bash
+meltano invoke tap-faethm
+```
+
+## Available Streams
+
+### Industries Stream
+- Endpoint: `/industries`
+- Primary key: `id`
+- Schema:
+  - `id` (string)
+  - `name` (string)
+
+### Emerging Skills Stream
+- Endpoint: `/industries/{industry_id}/skills/emerging`
+- Primary key: `id`
+- Parent stream: Industries
+- Schema:
+  - `id` (string)
+  - `name` (string)
+  - `description` (string)
+  - `industry_id` (string)
+
+### Trending Skills Stream
+- Endpoint: `/industries/{industry_id}/skills/trending`
+- Primary key: `id`
+- Parent stream: Industries
+- Schema:
+  - `id` (string)
+  - `name` (string)
+  - `description` (string)
+  - `industry_id` (string)
+
+### Declining Skills Stream
+- Endpoint: `/industries/{industry_id}/skills/declining`
+- Primary key: `id`
+- Parent stream: Industries
+- Schema:
+  - `id` (string)
+  - `name` (string)
+  - `description` (string)
+  - `industry_id` (string)
