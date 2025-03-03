@@ -113,7 +113,7 @@ class IndustriesStream(TapFaethmStream):
     """Stream for handling faethm Industries responses."""
     
     # Stream configuration
-    name: str = "industries_stream"
+    name: str = "industries"
     path: str = "/industries"
     primary_keys: List[str] = ["id"]
     replication_key: Optional[str] = None
@@ -168,14 +168,14 @@ class EmergingSkillsStream(TapFaethmStream):
     """
     
     # Stream configuration
-    name: str = "EmergingSkills"
+    name: str = "emerging_skills"
     path: str = "/industries/{industry_id}/skills/emerging"
     primary_keys: List[str] = ["id"]
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
     parent_stream_type = IndustriesStream
-    parent_streams = ["industries_stream"] 
+    parent_streams = ["industries"] 
     ignore_parent_replication_keys: bool = True
 
     # Stream schema definition
@@ -204,14 +204,14 @@ class TrendingSkillsStream(TapFaethmStream):
     """
     
     # Stream configuration
-    name: str = "TrendingSkills"
+    name: str = "trending_skills"
     path: str = "/industries/{industry_id}/skills/trending"
     primary_keys: List[str] = ["id"]
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
     parent_stream_type = IndustriesStream
-    parent_streams = ["industries_stream"] 
+    parent_streams = ["industries"] 
     ignore_parent_replication_keys: bool = True
 
     # Stream schema definition
@@ -240,14 +240,14 @@ class DecliningSkillsStream(TapFaethmStream):
     """
     
     # Stream configuration
-    name: str = "DecliningSkills"
+    name: str = "declining_skills"
     path: str = "/industries/{industry_id}/skills/declining"
     primary_keys: List[str] = ["id"]
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
     parent_stream_type = IndustriesStream
-    parent_streams = ["industries_stream"] 
+    parent_streams = ["industries"] 
     ignore_parent_replication_keys: bool = True
 
     # Stream schema definition

@@ -22,9 +22,9 @@ plugins:
       value: US
       description: coutry code for the data
     config:
-      api_base_url: $FAETHM_BASE_URL
-      api_key: $FAETHM_API_KEY
-      country_code: $FAETHM_COUNTRY_CODE
+      api_base_url: https://api.workforce.pearson.com/di/v1
+      api_key: $TAP_FAETHM_API_ACCOUNT_SECRET
+      country_code: $TAP_FAETHM_COUNTRY_CODE
   
   loaders:
   - name: target-jsonl
