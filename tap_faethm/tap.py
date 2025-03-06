@@ -8,8 +8,8 @@ from singer_sdk import typing as th
 from tap_faethm.streams import (
     IndustriesStream,
     EmergingSkillsStream,
-    TrendingSkillsStream,
-    DecliningSkillsStream
+    #TrendingSkillsStream,
+    #DecliningSkillsStream
 )
 
 PLUGIN_NAME = "tap-faethm"
@@ -17,8 +17,8 @@ PLUGIN_NAME = "tap-faethm"
 STREAM_TYPES = [ 
     IndustriesStream,
     EmergingSkillsStream,
-    TrendingSkillsStream,
-    DecliningSkillsStream
+    #TrendingSkillsStream,
+    #DecliningSkillsStream
 ]
 
 class TapFaethm(Tap):
