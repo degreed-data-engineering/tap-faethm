@@ -213,11 +213,12 @@ class EmergingSkillsStream(TapFaethmStream):
             row["category"] = "emerging"
 
             # Initialize counter for this industry if not exists
-            if industry_id not in self._extraction_counters:
-                self._extraction_counters[industry_id] = 0
+            industry_category = f"{industry_id}_emerging"
+            if industry_category not in self._extraction_counters:
+                self._extraction_counters[industry_category] = 0
 
-            self._extraction_counters[industry_id] += 1
-            row["rank"] = self._extraction_counters[industry_id]
+            self._extraction_counters[industry_category] += 1
+            row["rank"] = self._extraction_counters[industry_category]
         
         return row
     
@@ -282,11 +283,12 @@ class TrendingSkillsStream(TapFaethmStream):
             row["category"] = "trending"
 
             # Initialize counter for this industry if not exists
-            if industry_id not in self._extraction_counters:
-                self._extraction_counters[industry_id] = 0
+            industry_category = f"{industry_id}_trending"
+            if industry_category not in self._extraction_counters:
+                self._extraction_counters[industry_category] = 0
 
-            self._extraction_counters[industry_id] += 1
-            row["rank"] = self._extraction_counters[industry_id]
+            self._extraction_counters[industry_category] += 1
+            row["rank"] = self._extraction_counters[industry_category]
         
         return row
     
@@ -351,10 +353,11 @@ class DecliningSkillsStream(TapFaethmStream):
             row["category"] = "declining"
 
             # Initialize counter for this industry if not exists
-            if industry_id not in self._extraction_counters:
-                self._extraction_counters[industry_id] = 0
+            industry_category = f"{industry_id}_declining"
+            if industry_category not in self._extraction_counters:
+                self._extraction_counters[industry_category] = 0
 
-            self._extraction_counters[industry_id] += 1
-            row["rank"] = self._extraction_counters[industry_id]
+            self._extraction_counters[industry_category] += 1
+            row["rank"] = self._extraction_counters[industry_category]
         
         return row
