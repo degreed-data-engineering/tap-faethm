@@ -172,12 +172,6 @@ class IndustriesStream(TapFaethmStream):
     #         raise
 
     
-
-    def post_process(self, row: dict, context: Optional[dict]) -> dict:
-        row["latestVersion"] = self.latestVersion
-
-        return row
-
     def get_child_context(self, record: dict, context: Optional[dict]) -> dict:
         """Return a context dictionary for child streams."""
         return { "industry_id": record["id"]}
