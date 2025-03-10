@@ -1,6 +1,6 @@
 """Stream class for tap-faethm."""
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Iterable
 import time
 from singer_sdk import typing as th
 from singer_sdk.streams import RESTStream
