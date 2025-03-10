@@ -424,6 +424,18 @@ class DecliningSkillsStream(TapFaethmStream):
     def post_process(self, row: dict, context: Optional[dict]) -> dict:
         row["industry_id"] = context["industry_id"]
         return row
+    
+    def request_records(self, context: Optional[dict]) -> Iterable[dict]:
+        try:
+            yield from super().request_records(context)
+        except Exception as e:
+            if "404 Client Error" in str(e):
+                self.logger.warning(
+                    f"Jobs do not exist in the project {context.get('industry_id')}. Skipping."
+                )
+                return []
+            else:
+                raise
 
     # def post_process(self, row, context):
     #     """
