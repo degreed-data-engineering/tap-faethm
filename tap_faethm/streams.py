@@ -401,7 +401,7 @@ class DecliningSkillsStream(TapFaethmStream):
     # Stream configuration
     name: str = "skills_declining"
     path: str = "/industries/{industry_id}/skills/declining"
-    primary_keys: List[str] = ["id"]
+    #primary_keys: List[str] = ["id"]
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
