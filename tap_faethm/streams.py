@@ -171,11 +171,16 @@ class IndustriesStream(TapFaethmStream):
     #         logging.exception("Error generating child context")
     #         raise
 
-    def get_child_context(self, record: dict, context: Optional[dict] = None) -> dict:
-       """Return a context dictionary for child streams."""
-       return {
-           "industry_id": record["id"]
-       }
+    
+
+    def post_process(self, row: dict, context: Optional[dict]) -> dict:
+        row["latestVersion"] = self.latestVersion
+
+        return row
+
+    def get_child_context(self, record: dict, context: Optional[dict]) -> dict:
+        """Return a context dictionary for child streams."""
+        return { "industry_id": record["id"]}
         
 
 # class EmergingSkillsStream(TapFaethmStream):
@@ -417,10 +422,14 @@ class DecliningSkillsStream(TapFaethmStream):
         th.Property("name", th.StringType),
         th.Property("description", th.StringType),
         th.Property("industry_id", th.StringType),
-        th.Property("category", th.StringType),
-        th.Property("rank", th.IntegerType),
+      #  th.Property("category", th.StringType),
+      #  th.Property("rank", th.IntegerType),
     ).to_dict()
 
+
+    def post_process(self, row: dict, context: Optional[dict]) -> dict:
+        row["industry_id"] = context["industry_id"]
+        return row
 
     # def post_process(self, row, context):
     #     """
