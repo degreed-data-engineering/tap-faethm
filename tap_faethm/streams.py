@@ -171,7 +171,7 @@ class EmergingSkillsStream(TapFaethmStream):
     # Stream configuration
     name: str = "skills_emerging"
     path: str = "/industries/{industry_id}/skills/emerging"
-    primary_keys: List[str] = ["id"]
+    primary_keys: List[str] = ["id", "industry_id"] 
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
@@ -184,9 +184,8 @@ class EmergingSkillsStream(TapFaethmStream):
         th.Property("id", th.StringType),
         th.Property("name", th.StringType),
         th.Property("description", th.StringType),
-        th.Property("industry_id", th.StringType),
-        th.Property("category", th.StringType),
         th.Property("rank", th.IntegerType),
+        th.Property("industry_id", th.StringType),
     ).to_dict()
 
 
@@ -210,10 +209,9 @@ class EmergingSkillsStream(TapFaethmStream):
         if context and "industry_id" in context:
             industry_id = context["industry_id"]
             row["industry_id"] = industry_id
-            row["category"] = "emerging"
 
             # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}_emerging"
+            industry_category = f"{industry_id}"
             if industry_category not in self._skills_emerging_extraction_counters:
                 self._skills_emerging_extraction_counters[industry_category] = 0
 
@@ -240,7 +238,7 @@ class TrendingSkillsStream(TapFaethmStream):
     # Stream configuration
     name: str = "skills_trending"
     path: str = "/industries/{industry_id}/skills/trending"
-    primary_keys: List[str] = ["id"]
+    primary_keys: List[str] = ["id", "industry_id"]
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
@@ -254,9 +252,8 @@ class TrendingSkillsStream(TapFaethmStream):
         th.Property("id", th.StringType),
         th.Property("name", th.StringType),
         th.Property("description", th.StringType),
-        th.Property("industry_id", th.StringType),
-        th.Property("category", th.StringType),
         th.Property("rank", th.IntegerType),
+        th.Property("industry_id", th.StringType),
     ).to_dict()
 
 
@@ -280,10 +277,9 @@ class TrendingSkillsStream(TapFaethmStream):
         if context and "industry_id" in context:
             industry_id = context["industry_id"]
             row["industry_id"] = industry_id
-            row["category"] = "trending"
 
             # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}_trending"
+            industry_category = f"{industry_id}"
             if industry_category not in self._skills_trending_extraction_counters:
                 self._skills_trending_extraction_counters[industry_category] = 0
 
@@ -310,7 +306,7 @@ class DecliningSkillsStream(TapFaethmStream):
     # Stream configuration
     name: str = "skills_declining"
     path: str = "/industries/{industry_id}/skills/declining"
-    primary_keys: List[str] = ["id"]
+    primary_keys: List[str] = ["id", "industry_id"] 
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
@@ -324,9 +320,8 @@ class DecliningSkillsStream(TapFaethmStream):
         th.Property("id", th.StringType),
         th.Property("name", th.StringType),
         th.Property("description", th.StringType),
-        th.Property("industry_id", th.StringType),
-        th.Property("category", th.StringType),
         th.Property("rank", th.IntegerType),
+        th.Property("industry_id", th.StringType),
     ).to_dict()
 
 
@@ -350,10 +345,9 @@ class DecliningSkillsStream(TapFaethmStream):
         if context and "industry_id" in context:
             industry_id = context["industry_id"]
             row["industry_id"] = industry_id
-            row["category"] = "declining"
 
             # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}_declining"
+            industry_category = f"{industry_id}"
             if industry_category not in self._skills_declining_extraction_counters:
                 self._skills_declining_extraction_counters[industry_category] = 0
 
