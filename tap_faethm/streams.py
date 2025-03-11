@@ -169,7 +169,7 @@ class EmergingSkillsStream(TapFaethmStream):
         self._skills_emerging_extraction_counters = {} 
      
     # Stream configuration
-    name: str = "skills_emerging"
+    name: str = "emerging_skills"
     path: str = "/industries/{industry_id}/skills/emerging"
     primary_keys: List[str] = ["id", "industry_id"] 
     records_jsonpath: str = "$[*]"
@@ -236,7 +236,7 @@ class TrendingSkillsStream(TapFaethmStream):
      
     
     # Stream configuration
-    name: str = "skills_trending"
+    name: str = "trending_skills"
     path: str = "/industries/{industry_id}/skills/trending"
     primary_keys: List[str] = ["id", "industry_id"]
     records_jsonpath: str = "$[*]"
@@ -304,7 +304,7 @@ class DecliningSkillsStream(TapFaethmStream):
      
     
     # Stream configuration
-    name: str = "skills_declining"
+    name: str = "declining_skills"
     path: str = "/industries/{industry_id}/skills/declining"
     primary_keys: List[str] = ["id", "industry_id"] 
     records_jsonpath: str = "$[*]"
