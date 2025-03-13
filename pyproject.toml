@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "tap-faethm"
 version = "0.0.1"
-description = "`tap-faethm` is Singer-compliant template tap built with Singer SDK."
+description = "`tap-faethm` is Singer-compliant tap built with Singer SDK."
 authors = ["Derek Visch <dvisch@autoidm.com>"]
 license = "Apache v2"
 

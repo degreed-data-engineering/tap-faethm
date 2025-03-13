@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(name = "tap-faethm",
     version = 0.1,
-    description = "Template for Degreed taps in Meltano",
+    description = "Meltano tap to pull data from Faethm into Degreed",
 
     author = "Degreed",
     author_email = "",
