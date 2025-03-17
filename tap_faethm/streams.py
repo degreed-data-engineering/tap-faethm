@@ -169,7 +169,7 @@ class EmergingSkillsStream(TapFaethmStream):
         self._skills_emerging_extraction_counters = {} 
      
     # Stream configuration
-    name: str = "emerging_skills"
+    name: str = "skills"
     path: str = "/industries/{industry_id}/skills/emerging"
     primary_keys: List[str] = ["id", "industry_id"] 
     records_jsonpath: str = "$[*]"
@@ -185,6 +185,7 @@ class EmergingSkillsStream(TapFaethmStream):
         th.Property("name", th.StringType),
         th.Property("description", th.StringType),
         th.Property("rank", th.IntegerType),
+        th.Property("category", th.StringType),
         th.Property("industry_id", th.StringType),
     ).to_dict()
 
@@ -209,6 +210,7 @@ class EmergingSkillsStream(TapFaethmStream):
         if context and "industry_id" in context:
             industry_id = context["industry_id"]
             row["industry_id"] = industry_id
+            row["category"] = "emerging"
 
             # Initialize counter for this industry if not exists
             industry_category = f"{industry_id}"
@@ -236,7 +238,7 @@ class TrendingSkillsStream(TapFaethmStream):
      
     
     # Stream configuration
-    name: str = "trending_skills"
+    name: str = "skills"
     path: str = "/industries/{industry_id}/skills/trending"
     primary_keys: List[str] = ["id", "industry_id"]
     records_jsonpath: str = "$[*]"
@@ -253,6 +255,7 @@ class TrendingSkillsStream(TapFaethmStream):
         th.Property("name", th.StringType),
         th.Property("description", th.StringType),
         th.Property("rank", th.IntegerType),
+        th.Property("category", th.StringType),
         th.Property("industry_id", th.StringType),
     ).to_dict()
 
@@ -277,6 +280,7 @@ class TrendingSkillsStream(TapFaethmStream):
         if context and "industry_id" in context:
             industry_id = context["industry_id"]
             row["industry_id"] = industry_id
+            row["category"] = "trending"
 
             # Initialize counter for this industry if not exists
             industry_category = f"{industry_id}"
@@ -304,7 +308,7 @@ class DecliningSkillsStream(TapFaethmStream):
      
     
     # Stream configuration
-    name: str = "declining_skills"
+    name: str = "skills"
     path: str = "/industries/{industry_id}/skills/declining"
     primary_keys: List[str] = ["id", "industry_id"] 
     records_jsonpath: str = "$[*]"
@@ -321,6 +325,7 @@ class DecliningSkillsStream(TapFaethmStream):
         th.Property("name", th.StringType),
         th.Property("description", th.StringType),
         th.Property("rank", th.IntegerType),
+        th.Property("category", th.StringType),
         th.Property("industry_id", th.StringType),
     ).to_dict()
 
@@ -345,6 +350,7 @@ class DecliningSkillsStream(TapFaethmStream):
         if context and "industry_id" in context:
             industry_id = context["industry_id"]
             row["industry_id"] = industry_id
+            row["category"] = "declining"
 
             # Initialize counter for this industry if not exists
             industry_category = f"{industry_id}"
