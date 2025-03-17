@@ -171,7 +171,7 @@ class EmergingSkillsStream(TapFaethmStream):
     # Stream configuration
     name: str = "skills"
     path: str = "/industries/{industry_id}/skills/emerging"
-    primary_keys: List[str] = ["id", "industry_id"] 
+    primary_keys: List[str] = ["id", "industry_id", "category"] 
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
@@ -240,7 +240,7 @@ class TrendingSkillsStream(TapFaethmStream):
     # Stream configuration
     name: str = "skills"
     path: str = "/industries/{industry_id}/skills/trending"
-    primary_keys: List[str] = ["id", "industry_id"]
+    primary_keys: List[str] = ["id", "industry_id", "category"]
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
@@ -310,7 +310,7 @@ class DecliningSkillsStream(TapFaethmStream):
     # Stream configuration
     name: str = "skills"
     path: str = "/industries/{industry_id}/skills/declining"
-    primary_keys: List[str] = ["id", "industry_id"] 
+    primary_keys: List[str] = ["id", "industry_id", "category"] 
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
