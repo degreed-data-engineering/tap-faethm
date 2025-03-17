@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 
 
-setup(name = "tap-template",
+setup(name = "tap-faethm",
     version = 0.1,
-    description = "Template for Degreed taps in Meltano",
+    description = "Meltano tap to pull data from Faethm into Degreed",
 
     author = "Degreed",
     author_email = "",
-    url = "https://github.com/degreed-data-engineering/tap-template",
+    url = "https://github.com/degreed-data-engineering/tap-faethm",
     packages = find_packages(),
     package_data = {},
     include_package_data = True,
@@ -18,5 +18,9 @@ setup(name = "tap-template",
       'Programming Language :: Python',
       'Topic :: Scientific/Engineering :: Astronomy'
       ],
+      install_requires=[
+        "requests>=2.25.1",
+        # ... other dependencies ...
+    ],
     zip_safe=False
 )

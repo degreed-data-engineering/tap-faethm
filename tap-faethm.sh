@@ -11,4 +11,5 @@ TOML_DIR=$(dirname "$0")
 
 cd "$TOML_DIR" || exit
 poetry install 1>&2
-poetry run tap-template $*
+poetry run tap-faethm "$@"
+
