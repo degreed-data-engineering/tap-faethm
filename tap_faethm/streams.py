@@ -407,3 +407,68 @@ class DecliningSkillsStream(TapFaethmStream):
             row["country_code"] = context["country_code"]
         
         return row
+    
+class SkillsCatalogStream(TapFaethmStream):
+    """Standalone skills catalog endpoint."""
+
+    name: str = "skills_list"
+    path: str = "/skills"
+    primary_keys: List[str] = ["id"]
+    records_jsonpath: str = "$.skills[*]"
+
+    schema: Dict[str, Any] = th.PropertiesList(
+        th.Property("id", th.StringType),
+        th.Property("name", th.StringType),
+        th.Property("description", th.StringType),
+    ).to_dict()
+
+    def get_url_params(
+            self,
+            context: Optional[dict] = None,
+            next_page_token: Optional[Any] = None
+    ) -> Dict[str, Any]:
+        """
+        Build URL parameters for skills list with cursor-based pagination.
+
+        Adds `limit` from config (default 50) and `cursor_key` when paginating.
+        """
+        params: Dict[str, Any] = {}
+        # Page size from config, default to 50
+        page_size = self.config.get("page_size") or 50
+        params["limit"] = page_size
+
+        # Cursor key for next page
+        if next_page_token:
+            params["cursor_key"] = next_page_token
+
+        return params
+
+    def get_next_page_token(self, response, previous_token: Optional[Any]) -> Optional[Any]:
+        """
+        Determine the next cursor_key from the response.
+
+        Assumes the endpoint returns an object with a `skills` array and
+        that the `cursor_key` corresponds to the last returned `id`.
+        When fewer than `limit` records are returned, pagination stops.
+        """
+        try:
+            data = response.json()
+            skills = []
+            if isinstance(data, dict):
+                skills = data.get("skills") or []
+            elif isinstance(data, list):
+                # Fallback for legacy behavior
+                skills = data
+
+            page_size = int(self.config.get("page_size") or 50)
+
+            if not isinstance(skills, list) or len(skills) == 0:
+                return None
+            if len(skills) < page_size:
+                return None
+
+            last_item = skills[-1]
+            next_cursor = last_item.get("id") if isinstance(last_item, dict) else None
+            return next_cursor
+        except Exception:
+            return None
