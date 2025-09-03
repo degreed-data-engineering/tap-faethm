@@ -21,10 +21,18 @@ plugins:
     - name: country_code
       value: US
       description: coutry code for the data
+    - name: page_size
+      value: 50
+      description: Page size for pagination
+    - name: stream_group
+      value: all
+      description: Which streams to run: industry_skills | skill_list | all
     config:
       api_base_url: https://api.workforce.pearson.com/di/v1
       api_key: $TAP_FAETHM_API_ACCOUNT_SECRET
       country_code: $TAP_FAETHM_COUNTRY_CODE
+      page_size: $TAP_FAETHM_PAGE_SIZE
+      stream_group: $TAP_FAETHM_STREAM_GROUP
   
   loaders:
   - name: target-jsonl
