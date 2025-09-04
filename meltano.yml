@@ -23,10 +23,11 @@ plugins:
       description: coutry code for the data
     - name: page_size
       value: 50
+      kind: integer
       description: Page size for pagination
     - name: stream_group
       value: all
-      description: Which streams to run: industry_skills | skill_list | all
+      description: Which streams to run- industry_skills | skill_list | all
     config:
       api_base_url: https://api.workforce.pearson.com/di/v1
       api_key: $TAP_FAETHM_API_ACCOUNT_SECRET
