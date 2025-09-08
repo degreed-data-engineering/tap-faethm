@@ -22,7 +22,7 @@ STREAM_GROUPS: Dict[str, List[Type[Stream]]] = {
         TrendingSkillsStream,
         DecliningSkillsStream,
     ],
-    "skill_list": [
+    "skills_list": [
         SkillsCatalogStream,
     ],
 }
@@ -40,7 +40,7 @@ class TapFaethm(Tap):
             "stream_group",
             th.StringType,
             required=False,
-            description="Which streams to run: industry_skills | skill_list | all",
+            description="Which streams to run: industry_skills | skills_list | all",
         ),
     ).to_dict()
 
