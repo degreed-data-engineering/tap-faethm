@@ -16,13 +16,13 @@ from tap_faethm.streams import (
 PLUGIN_NAME = "tap-faethm"
 
 STREAM_GROUPS: Dict[str, List[Type[Stream]]] = {
-    "industry_skills": [
+    "industry_skills_by_category": [
         IndustriesStream,
         EmergingSkillsStream,
         TrendingSkillsStream,
         DecliningSkillsStream,
     ],
-    "skills_list": [
+    "all_skills_list": [
         SkillsCatalogStream,
     ],
 }
@@ -40,7 +40,7 @@ class TapFaethm(Tap):
             "stream_group",
             th.StringType,
             required=False,
-            description="Which streams to run: industry_skills | skills_list | all",
+            description="Which streams to run: industry_skills_by_category | all_skills_list | all",
         ),
     ).to_dict()
 

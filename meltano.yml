@@ -62,11 +62,11 @@ environments:
       extractors:
       - name: tap-faethm
         config:
-          stream_group: industry_skills
+          stream_group: industry_skills_by_category
 - name: skills
   config:
     plugins:
       extractors:
       - name: tap-faethm
         config:
-          stream_group: skills_list
+          stream_group: all_skills_list
