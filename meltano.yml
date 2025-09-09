@@ -25,16 +25,11 @@ plugins:
       value: 50
       kind: integer
       description: Page size for pagination
-    - name: stream_group
-      value: all
-      description: Which streams to run- industry_skills | skills_list | all
     config:
       api_base_url: https://api.workforce.pearson.com/di/v1
       api_key: $TAP_FAETHM_API_ACCOUNT_SECRET
       country_code: $TAP_FAETHM_COUNTRY_CODE
       page_size: $TAP_FAETHM_PAGE_SIZE
-      stream_group: $TAP_FAETHM_STREAM_GROUP
-  
   loaders:
   - name: target-jsonl
     variant: andyh1203
@@ -49,24 +44,3 @@ environments:
     plugins:
       extractors:
       - name: tap-faethm
-- name: all
-  config:
-    plugins:
-      extractors:
-      - name: tap-faethm
-        config:
-          stream_group: all
-- name: industry
-  config:
-    plugins:
-      extractors:
-      - name: tap-faethm
-        config:
-          stream_group: industry_skills_by_category
-- name: skills
-  config:
-    plugins:
-      extractors:
-      - name: tap-faethm
-        config:
-          stream_group: all_skills_list

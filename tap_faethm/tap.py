@@ -1,7 +1,7 @@
 """faethm tap class."""
 
 
-from typing import List, Dict, Type
+from typing import List
 from singer_sdk import Tap, Stream
 from singer_sdk import typing as th
 
@@ -15,17 +15,13 @@ from tap_faethm.streams import (
 
 PLUGIN_NAME = "tap-faethm"
 
-STREAM_GROUPS: Dict[str, List[Type[Stream]]] = {
-    "industry_skills_by_category": [
-        IndustriesStream,
-        EmergingSkillsStream,
-        TrendingSkillsStream,
-        DecliningSkillsStream,
-    ],
-    "all_skills_list": [
-        SkillsCatalogStream,
-    ],
-}
+STREAM_TYPES = [ 
+    IndustriesStream,
+    EmergingSkillsStream,
+    TrendingSkillsStream,
+    DecliningSkillsStream,
+    SkillsCatalogStream
+]
 
 class TapFaethm(Tap):
     """Faethm tap class for extracting data from Faethm API."""
@@ -35,23 +31,14 @@ class TapFaethm(Tap):
         th.Property("api_base_url", th.StringType, required=False, description="Url base for the source endpoint"),
         th.Property("api_key", th.StringType, required=False, description="API key"),
         th.Property("country_code", th.StringType, required=False, description="coutry code for the data"),
-        th.Property("page_size", th.IntegerType, required=False, description="Page size for pagination (default 50)"),
-        th.Property(
-            "stream_group",
-            th.StringType,
-            required=False,
-            description="Which streams to run: industry_skills_by_category | all_skills_list | all",
-        ),
+        th.Property("page_size", th.IntegerType, required=False, description="Page size for pagination (default 50)")
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:
         """Return a list of discovered streams."""
-        group = (self.config.get("stream_group") or "all").lower()
-        if group == "all":
-            stream_classes: List[Type[Stream]] = sum(STREAM_GROUPS.values(), [])
-        else:
-            stream_classes = STREAM_GROUPS.get(group, [])
-        return [stream_class(tap=self) for stream_class in stream_classes]
+        streams =  [stream_class(tap=self) for stream_class in STREAM_TYPES]
+
+        return streams
 
 
 # CLI Execution:

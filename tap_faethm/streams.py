@@ -214,7 +214,6 @@ class EmergingSkillsStream(TapFaethmStream):
         th.Property("rank", th.IntegerType),
         th.Property("category", th.StringType),
         th.Property("industry_id", th.StringType),
-        th.Property("industry_id", th.StringType),
         th.Property("country_code", th.StringType),
     ).to_dict()
 
