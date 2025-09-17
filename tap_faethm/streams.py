@@ -12,6 +12,9 @@ class TapFaethmStream(RESTStream):
     """Base industry stream class for Faethm API endpoints."""
 
     _LOG_REQUEST_METRIC_URLS: bool = True
+    
+    # Make all streams opt-in; select explicitly via Meltano rules.
+    selected_by_default = False
 
     REQUEST_TIMEOUT = 300  # 5 minute timeout
     RATE_LIMIT_DELAY = 1  # 1 seconds between requests
@@ -196,7 +199,7 @@ class EmergingSkillsStream(TapFaethmStream):
         self._skills_emerging_extraction_counters = {} 
      
     # Stream configuration
-    name: str = "industry_skills"
+    name: str = "emerging_skills"
     path: str = "/industries/{industry_id}/skills/emerging"
     primary_keys: List[str] = ["id", "industry_id", "category"] 
     records_jsonpath: str = "$[*]"
@@ -271,7 +274,7 @@ class TrendingSkillsStream(TapFaethmStream):
      
     
     # Stream configuration
-    name: str = "industry_skills"
+    name: str = "trending_skills"
     path: str = "/industries/{industry_id}/skills/trending"
     primary_keys: List[str] = ["id", "industry_id", "category"]
     records_jsonpath: str = "$[*]"
@@ -347,7 +350,7 @@ class DecliningSkillsStream(TapFaethmStream):
      
     
     # Stream configuration
-    name: str = "industry_skills"
+    name: str = "declining_skills"
     path: str = "/industries/{industry_id}/skills/declining"
     primary_keys: List[str] = ["id", "industry_id", "category"] 
     records_jsonpath: str = "$[*]"
