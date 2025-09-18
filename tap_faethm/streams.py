@@ -186,22 +186,22 @@ class IndustriesStream(TapFaethmStream):
         return row
 
 
-class EmergingSkillsStream(TapFaethmStream):
+class IndustrySkillsStream(TapFaethmStream):
     """
-    Emerging Skills stream class, child of Indusrties.
+    Industry Skills stream class, child of Indusrties.
     
-    This stream handles Emerging Skills data associated with respective industries.,
+    This stream handles emerging, trending and  declining skills data associated with respective industries.,
     
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._skills_emerging_extraction_counters = {} 
+        self._skills_extraction_counters = {} 
      
     # Stream configuration
-    name: str = "emerging_skills"
-    path: str = "/industries/{industry_id}/skills/emerging"
-    primary_keys: List[str] = ["id", "industry_id", "category"] 
+    name: str = "industry_skills"
+    path: str = "/industries/{industry_id}/skills/{category}"
+    primary_keys: List[str] = ["rank", "industry_id", "category"] 
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
@@ -221,194 +221,30 @@ class EmergingSkillsStream(TapFaethmStream):
     ).to_dict()
 
 
-    def post_process(self, row, context):
-        """
-        Process each row of data after extraction from the API response.
-        
-        This method enriches skill records with additional context:
-        1. Adds the parent industry_id to each skill record
-        2. Sets the category to "emerging" for all records in this stream
-        3. Assigns an incremental rank based on extraction order within each industry
-        4. Adds the country_code from parent context
-        
-        Args:
-            row (dict): The raw skill record from the API
-            context (dict): Contextual information from parent stream, containing industry_id and country_code
-            
-        Returns:
-            dict: The processed skill record with additional fields
-        """
-        
-        if context and "industry_id" in context:
-            industry_id = context["industry_id"]
-            row["industry_id"] = industry_id
-            row["category"] = "emerging"
+    categories = ["emerging", "trending", "declining"]
 
-            # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}"
-            if industry_category not in self._skills_emerging_extraction_counters:
-                self._skills_emerging_extraction_counters[industry_category] = 0
+    def get_records(self, context):
+        industry_id = context["industry_id"]
+        # if you want only one category, read from config (e.g. config['skills_category'])
+        chosen = self.config.get("skills_category")
+        categories = [chosen] if chosen else self.categories
 
-            self._skills_emerging_extraction_counters[industry_category] += 1
-            row["rank"] = self._skills_emerging_extraction_counters[industry_category]
-        
-        # Add country_code from context
-        if context and "country_code" in context:
-            row["country_code"] = context["country_code"]
-        
-        return row
+        for category in categories:
+            url = self.path.format(industry_id=industry_id, category=category)
+            # use RESTStream helper to fetch and parse records for that url
+            for record in super().get_records(context={"industry_id": industry_id, "category": category}):
+                record["category"] = category
+                record["industry_id"] = industry_id
+
+                # Add rank within category
+                category_key = f"{industry_id}_{category}"
+                if category_key not in self._skills_extraction_counters:
+                    self._skills_extraction_counters[category_key] = 0
+                self._skills_extraction_counters[category_key] += 1
+                record["rank"] = self._skills_extraction_counters[category_key]
+
+                yield record
     
-
-class TrendingSkillsStream(TapFaethmStream):
-
-    """
-    Trending Skills stream class, child of Indusrties.
-    
-    This stream handles Trending Skills data associated with respective industries.,
-    
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._skills_trending_extraction_counters = {} 
-     
-    
-    # Stream configuration
-    name: str = "trending_skills"
-    path: str = "/industries/{industry_id}/skills/trending"
-    primary_keys: List[str] = ["id", "industry_id", "category"]
-    records_jsonpath: str = "$[*]"
-    
-    # Parent stream settings
-    parent_stream_type = IndustriesStream
-    parent_streams = ["industries"] 
-    ignore_parent_replication_keys: bool = True
-
-
-    # Stream schema definition
-    schema: Dict[str, Any] = th.PropertiesList(
-        th.Property("id", th.StringType),
-        th.Property("name", th.StringType),
-        th.Property("description", th.StringType),
-        th.Property("rank", th.IntegerType),
-        th.Property("category", th.StringType),
-        th.Property("industry_id", th.StringType),
-        th.Property("country_code", th.StringType),
-    ).to_dict()
-
-
-    def post_process(self, row, context):
-        """
-        Process each row of data after extraction from the API response.
-        
-        This method enriches skill records with additional context:
-        1. Adds the parent industry_id to each skill record
-        2. Sets the category to "trending" for all records in this stream
-        3. Assigns an incremental rank based on extraction order within each industry
-        4. Adds the country_code from parent context
-        
-        Args:
-            row (dict): The raw skill record from the API
-            context (dict): Contextual information from parent stream, containing industry_id and country_code
-            
-        Returns:
-            dict: The processed skill record with additional fields
-        """
-        
-        if context and "industry_id" in context:
-            industry_id = context["industry_id"]
-            row["industry_id"] = industry_id
-            row["category"] = "trending"
-
-            # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}"
-            if industry_category not in self._skills_trending_extraction_counters:
-                self._skills_trending_extraction_counters[industry_category] = 0
-
-            self._skills_trending_extraction_counters[industry_category] += 1
-            row["rank"] = self._skills_trending_extraction_counters[industry_category]
-        
-        # Add country_code from context
-        if context and "country_code" in context:
-            row["country_code"] = context["country_code"]
-        
-        return row
-    
-
-class DecliningSkillsStream(TapFaethmStream):
-
-    """
-    Declining Skills stream class, child of Indusrties.
-    
-    This stream handles Declining Skills data associated with respective industries.,
-    
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._skills_declining_extraction_counters = {} 
-     
-    
-    # Stream configuration
-    name: str = "declining_skills"
-    path: str = "/industries/{industry_id}/skills/declining"
-    primary_keys: List[str] = ["id", "industry_id", "category"] 
-    records_jsonpath: str = "$[*]"
-    
-    # Parent stream settings
-    parent_stream_type = IndustriesStream
-    parent_streams = ["industries"] 
-    ignore_parent_replication_keys: bool = True
-
-
-    # Stream schema definition
-    schema: Dict[str, Any] = th.PropertiesList(
-        th.Property("id", th.StringType),
-        th.Property("name", th.StringType),
-        th.Property("description", th.StringType),
-        th.Property("rank", th.IntegerType),
-        th.Property("category", th.StringType),
-        th.Property("industry_id", th.StringType),
-        th.Property("country_code", th.StringType),
-    ).to_dict()
-
-
-    def post_process(self, row, context):
-        """
-        Process each row of data after extraction from the API response.
-        
-        This method enriches skill records with additional context:
-        1. Adds the parent industry_id to each skill record
-        2. Sets the category to "declining" for all records in this stream
-        3. Assigns an incremental rank based on extraction order within each industry
-        4. Adds the country_code from parent context
-        
-        Args:
-            row (dict): The raw skill record from the API
-            context (dict): Contextual information from parent stream, containing industry_id and country_code
-            
-        Returns:
-            dict: The processed skill record with additional fields
-        """
-        
-        if context and "industry_id" in context:
-            industry_id = context["industry_id"]
-            row["industry_id"] = industry_id
-            row["category"] = "declining"
-
-            # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}"
-            if industry_category not in self._skills_declining_extraction_counters:
-                self._skills_declining_extraction_counters[industry_category] = 0
-
-            self._skills_declining_extraction_counters[industry_category] += 1
-            row["rank"] = self._skills_declining_extraction_counters[industry_category]
-        
-        # Add country_code from context
-        if context and "country_code" in context:
-            row["country_code"] = context["country_code"]
-        
-        return row
     
 class SkillsCatalogStream(TapFaethmStream):
     """Standalone skills catalog endpoint."""
