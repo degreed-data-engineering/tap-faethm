@@ -12,6 +12,9 @@ class TapFaethmStream(RESTStream):
     """Base industry stream class for Faethm API endpoints."""
 
     _LOG_REQUEST_METRIC_URLS: bool = True
+    
+    # Make all streams opt-in; select explicitly via Meltano rules.
+    selected_by_default = False
 
     REQUEST_TIMEOUT = 300  # 5 minute timeout
     RATE_LIMIT_DELAY = 1  # 1 seconds between requests
@@ -183,22 +186,22 @@ class IndustriesStream(TapFaethmStream):
         return row
 
 
-class EmergingSkillsStream(TapFaethmStream):
+class IndustrySkillsStream(TapFaethmStream):
     """
-    Emerging Skills stream class, child of Indusrties.
+    Industry Skills stream class, child of Indusrties.
     
-    This stream handles Emerging Skills data associated with respective industries.,
+    This stream handles emerging, trending and  declining skills data associated with respective industries.,
     
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._skills_emerging_extraction_counters = {} 
+        self._skills_extraction_counters = {} 
      
     # Stream configuration
-    name: str = "skills"
-    path: str = "/industries/{industry_id}/skills/emerging"
-    primary_keys: List[str] = ["id", "industry_id", "category"] 
+    name: str = "industry_skills"
+    path: str = "/industries/{industry_id}/skills/{category}"
+    primary_keys: List[str] = ["rank", "industry_id", "category"] 
     records_jsonpath: str = "$[*]"
     
     # Parent stream settings
@@ -214,196 +217,96 @@ class EmergingSkillsStream(TapFaethmStream):
         th.Property("rank", th.IntegerType),
         th.Property("category", th.StringType),
         th.Property("industry_id", th.StringType),
-        th.Property("industry_id", th.StringType),
         th.Property("country_code", th.StringType),
     ).to_dict()
 
 
-    def post_process(self, row, context):
-        """
-        Process each row of data after extraction from the API response.
-        
-        This method enriches skill records with additional context:
-        1. Adds the parent industry_id to each skill record
-        2. Sets the category to "emerging" for all records in this stream
-        3. Assigns an incremental rank based on extraction order within each industry
-        4. Adds the country_code from parent context
-        
-        Args:
-            row (dict): The raw skill record from the API
-            context (dict): Contextual information from parent stream, containing industry_id and country_code
-            
-        Returns:
-            dict: The processed skill record with additional fields
-        """
-        
-        if context and "industry_id" in context:
-            industry_id = context["industry_id"]
-            row["industry_id"] = industry_id
-            row["category"] = "emerging"
+    categories = ["emerging", "trending", "declining"]
 
-            # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}"
-            if industry_category not in self._skills_emerging_extraction_counters:
-                self._skills_emerging_extraction_counters[industry_category] = 0
+    def get_records(self, context):
+        industry_id = context["industry_id"]
+        # if you want only one category, read from config (e.g. config['skills_category'])
+        chosen = self.config.get("skills_category")
+        categories = [chosen] if chosen else self.categories
 
-            self._skills_emerging_extraction_counters[industry_category] += 1
-            row["rank"] = self._skills_emerging_extraction_counters[industry_category]
-        
-        # Add country_code from context
-        if context and "country_code" in context:
-            row["country_code"] = context["country_code"]
-        
-        return row
+        for category in categories:
+            url = self.path.format(industry_id=industry_id, category=category)
+            # use RESTStream helper to fetch and parse records for that url
+            for record in super().get_records(context={"industry_id": industry_id, "category": category}):
+                record["category"] = category
+                record["industry_id"] = industry_id
+
+                # Add rank within category
+                category_key = f"{industry_id}_{category}"
+                if category_key not in self._skills_extraction_counters:
+                    self._skills_extraction_counters[category_key] = 0
+                self._skills_extraction_counters[category_key] += 1
+                record["rank"] = self._skills_extraction_counters[category_key]
+
+                yield record
     
-
-class TrendingSkillsStream(TapFaethmStream):
-
-    """
-    Trending Skills stream class, child of Indusrties.
     
-    This stream handles Trending Skills data associated with respective industries.,
-    
-    """
+class SkillsCatalogStream(TapFaethmStream):
+    """Standalone skills catalog endpoint."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._skills_trending_extraction_counters = {} 
-     
-    
-    # Stream configuration
-    name: str = "skills"
-    path: str = "/industries/{industry_id}/skills/trending"
-    primary_keys: List[str] = ["id", "industry_id", "category"]
-    records_jsonpath: str = "$[*]"
-    
-    # Parent stream settings
-    parent_stream_type = IndustriesStream
-    parent_streams = ["industries"] 
-    ignore_parent_replication_keys: bool = True
+    name: str = "skills_list"
+    path: str = "/skills"
+    primary_keys: List[str] = ["id"]
+    records_jsonpath: str = "$.skills[*]"
 
-
-    # Stream schema definition
     schema: Dict[str, Any] = th.PropertiesList(
         th.Property("id", th.StringType),
         th.Property("name", th.StringType),
         th.Property("description", th.StringType),
-        th.Property("rank", th.IntegerType),
-        th.Property("category", th.StringType),
-        th.Property("industry_id", th.StringType),
-        th.Property("country_code", th.StringType),
     ).to_dict()
 
-
-    def post_process(self, row, context):
+    def get_url_params(
+            self,
+            context: Optional[dict] = None,
+            next_page_token: Optional[Any] = None
+    ) -> Dict[str, Any]:
         """
-        Process each row of data after extraction from the API response.
-        
-        This method enriches skill records with additional context:
-        1. Adds the parent industry_id to each skill record
-        2. Sets the category to "trending" for all records in this stream
-        3. Assigns an incremental rank based on extraction order within each industry
-        4. Adds the country_code from parent context
-        
-        Args:
-            row (dict): The raw skill record from the API
-            context (dict): Contextual information from parent stream, containing industry_id and country_code
-            
-        Returns:
-            dict: The processed skill record with additional fields
+        Build URL parameters for skills list with cursor-based pagination.
+
+        Adds `limit` from config (default 50) and `cursor_key` when paginating.
         """
-        
-        if context and "industry_id" in context:
-            industry_id = context["industry_id"]
-            row["industry_id"] = industry_id
-            row["category"] = "trending"
+        params: Dict[str, Any] = {}
+        # Page size from config, default to 50
+        page_size = self.config.get("page_size") or 50
+        params["limit"] = page_size
 
-            # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}"
-            if industry_category not in self._skills_trending_extraction_counters:
-                self._skills_trending_extraction_counters[industry_category] = 0
+        # Cursor key for next page
+        if next_page_token:
+            params["cursor_key"] = next_page_token
 
-            self._skills_trending_extraction_counters[industry_category] += 1
-            row["rank"] = self._skills_trending_extraction_counters[industry_category]
-        
-        # Add country_code from context
-        if context and "country_code" in context:
-            row["country_code"] = context["country_code"]
-        
-        return row
-    
+        return params
 
-class DecliningSkillsStream(TapFaethmStream):
-
-    """
-    Declining Skills stream class, child of Indusrties.
-    
-    This stream handles Declining Skills data associated with respective industries.,
-    
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._skills_declining_extraction_counters = {} 
-     
-    
-    # Stream configuration
-    name: str = "skills"
-    path: str = "/industries/{industry_id}/skills/declining"
-    primary_keys: List[str] = ["id", "industry_id", "category"] 
-    records_jsonpath: str = "$[*]"
-    
-    # Parent stream settings
-    parent_stream_type = IndustriesStream
-    parent_streams = ["industries"] 
-    ignore_parent_replication_keys: bool = True
-
-
-    # Stream schema definition
-    schema: Dict[str, Any] = th.PropertiesList(
-        th.Property("id", th.StringType),
-        th.Property("name", th.StringType),
-        th.Property("description", th.StringType),
-        th.Property("rank", th.IntegerType),
-        th.Property("category", th.StringType),
-        th.Property("industry_id", th.StringType),
-        th.Property("country_code", th.StringType),
-    ).to_dict()
-
-
-    def post_process(self, row, context):
+    def get_next_page_token(self, response, previous_token: Optional[Any]) -> Optional[Any]:
         """
-        Process each row of data after extraction from the API response.
-        
-        This method enriches skill records with additional context:
-        1. Adds the parent industry_id to each skill record
-        2. Sets the category to "declining" for all records in this stream
-        3. Assigns an incremental rank based on extraction order within each industry
-        4. Adds the country_code from parent context
-        
-        Args:
-            row (dict): The raw skill record from the API
-            context (dict): Contextual information from parent stream, containing industry_id and country_code
-            
-        Returns:
-            dict: The processed skill record with additional fields
+        Determine the next cursor_key from the response.
+
+        Assumes the endpoint returns an object with a `skills` array and
+        that the `cursor_key` corresponds to the last returned `id`.
+        When fewer than `limit` records are returned, pagination stops.
         """
-        
-        if context and "industry_id" in context:
-            industry_id = context["industry_id"]
-            row["industry_id"] = industry_id
-            row["category"] = "declining"
+        try:
+            data = response.json()
+            skills = []
+            if isinstance(data, dict):
+                skills = data.get("skills") or []
+            elif isinstance(data, list):
+                # Fallback for legacy behavior
+                skills = data
 
-            # Initialize counter for this industry if not exists
-            industry_category = f"{industry_id}"
-            if industry_category not in self._skills_declining_extraction_counters:
-                self._skills_declining_extraction_counters[industry_category] = 0
+            page_size = int(self.config.get("page_size") or 50)
 
-            self._skills_declining_extraction_counters[industry_category] += 1
-            row["rank"] = self._skills_declining_extraction_counters[industry_category]
-        
-        # Add country_code from context
-        if context and "country_code" in context:
-            row["country_code"] = context["country_code"]
-        
-        return row
+            if not isinstance(skills, list) or len(skills) == 0:
+                return None
+            if len(skills) < page_size:
+                return None
+
+            last_item = skills[-1]
+            next_cursor = last_item.get("id") if isinstance(last_item, dict) else None
+            return next_cursor
+        except Exception:
+            return None

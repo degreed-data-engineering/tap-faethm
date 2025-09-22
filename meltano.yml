@@ -21,11 +21,15 @@ plugins:
     - name: country_code
       value: US
       description: coutry code for the data
+    - name: page_size
+      value: 50
+      kind: integer
+      description: Page size for pagination
     config:
       api_base_url: https://api.workforce.pearson.com/di/v1
       api_key: $TAP_FAETHM_API_ACCOUNT_SECRET
       country_code: $TAP_FAETHM_COUNTRY_CODE
-  
+      page_size: $TAP_FAETHM_PAGE_SIZE
   loaders:
   - name: target-jsonl
     variant: andyh1203
