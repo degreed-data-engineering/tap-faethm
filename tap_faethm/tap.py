@@ -30,9 +30,9 @@ class TapFaethm(Tap):
 
     name = "tap-faethm"
     config_jsonschema = th.PropertiesList(
-        th.Property("api_base_url", th.StringType, required=False, description="Url base for the source endpoint"),
-        th.Property("api_key", th.StringType, required=False, description="API key"),
-        th.Property("country_code", th.StringType, required=False, description="coutry code for the data"),
+        th.Property("api_base_url", th.StringType, required=True, description="Url base for the source endpoint"),
+        th.Property("api_key", th.StringType, required=True, description="API key"),
+        th.Property("country_code", th.StringType, required=False, description="country code for the data"),
         th.Property("page_size", th.IntegerType, required=False, description="Page size for pagination (default 50)")
     ).to_dict()
 
