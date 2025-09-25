@@ -17,11 +17,11 @@ from tap_faethm.streams import (
 PLUGIN_NAME = "tap-faethm"
 
 STREAM_TYPES = [ 
-    #IndustriesStream,
-    #IndustrySkillsStream,
-    #SkillsCatalogStream,
+    IndustriesStream,
+    IndustrySkillsStream,
+    SkillsCatalogStream,
     OccupationsStream,
-    #OccupationSkillsStream,
+    OccupationSkillsStream,
     OccupationDetailsStream
 ]
 
